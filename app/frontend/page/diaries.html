@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>오늘의 일기 - 내 일기</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <link rel="icon" href="data:," />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+    <style> 
+        body { font-family: 'Noto Sans KR', sans-serif; }
+    </style>
+</head> 
+
+<body class="bg-gray-100 min-h-screen text-black">
+    <div x-data="diariesApp()" x-init="init()">
+
+        <!-- 네비게이션 -->
+        <nav class="bg-white border-b sticky top-0 z-50">
+            <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+                <a href="/dashboard" class="text-xl font-bold text-black">
+                    오늘의 일기
+                </a>
+
+                <div class="flex items-center gap-4">
+                    <a href="/dashboard" class="text-sm text-gray-600 hover:text-black">대시보드</a>
+                    <a href="/bookmarks" class="text-sm text-gray-600 hover:text-black">북마크</a>
+                    <button @click="logout" class="text-sm text-gray-600 hover:text-black">로그아웃</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 메인 -->
+        <main class="max-w-4xl mx-auto px-4 py-10">
+            <h1 class="text-2xl font-bold mb-6">내 일기</h1>
+
+            <!-- 일기 리스트 -->
+            <div class="space-y-4">
+                <template x-for="diary in diaries" :key="diary.id">
+                    <div class="bg-white border rounded-xl p-6 shadow-sm hover:shadow transition">
+                        <div class="flex justify-between items-start">
+
+                            <div class="flex-1">
+                                <div class="text-xs text-gray-400 mb-1" x-text="formatDate(diary.date)"></div>
+                                <h3 class="font-bold text-lg mb-2" x-text="diary.title"></h3>
+                                <p class="text-gray-700" x-text="diary.content"></p>
+                            </div>
+
+                            <div class="flex gap-3 ml-4">
+                                <button @click="editDiary(diary)" class="text-sm text-gray-600 hover:underline">수정</button>
+                                <button @click="deleteDiary(diary.id)" class="text-sm text-gray-600 hover:underline">삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 아무 일기도 없을 때 -->
+                <div x-show="diaries.length === 0" class="text-center py-16 text-gray-400">
+                    <p>아직 작성한 일기가 없어요.</p>
+                    <a href="/dashboard" class="text-black hover:underline mt-2 inline-block">
+                        첫 번째 일기 작성하기 →
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <!-- 수정 모달 -->
+        <div 
+            x-show="showEditModal"
+            x-transition
+            class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
+        >
+            <div class="bg-white border rounded-2xl p-6 w-full max-w-lg"
+                @click.away="showEditModal = false">
+
+                <h2 class="text-lg font-bold mb-4">일기 수정</h2>
+
+                <form @submit.prevent="updateDiary" class="space-y-4">
+                    <input
+                        type="text"
+                        x-model="editForm.title"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black"
+                        required
+                    >
+
+                    <textarea
+                        x-model="editForm.content"
+                        rows="6"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-black"
+                        required
+                    ></textarea>
+
+                    <div class="flex gap-2">
+                        <button 
+                            type="button" 
+                            @click="showEditModal = false"
+                            class="flex-1 py-2 border border-gray-300 rounded-lg"
+                        >
+                            취소
+                        </button>
+
+                        <button 
+                            type="submit"
+                            class="flex-1 py-2 bg-black text-white rounded-lg"
+                        >
+                            저장
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 토스트 -->
+        <div 
+            x-show="toast.show"
+            x-transition
+            :class="toast.type === 'success' ? 'bg-black' : 'bg-red-600'"
+            class="fixed bottom-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg"
+        >
+            <span x-text="toast.message"></span>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "/api/v1";
+
+        function diariesApp() {
+            return {
+                diaries: [],
+                showEditModal: false,
+                editForm: { id: null, title: "", content: "" },
+                toast: { show: false, message: "", type: "success" },
+
+                async init() {
+                    if (!localStorage.getItem("token")) {
+                        window.location.href = "/";
+                        return;
+                    }
+                    await this.getDiaries();
+                },
+
+                getHeaders() {
+                    return {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    };
+                },
+
+                async getDiaries() {
+                    const res = await fetch(`${API_URL}/diaries`, { headers: this.getHeaders() });
+                    if (res.ok) this.diaries = await res.json();
+                },
+
+                editDiary(diary) {
+                    this.editForm = { id: diary.id, title: diary.title, content: diary.content };
+                    this.showEditModal = true;
+                },
+
+                async updateDiary() {
+                    try {
+                        const res = await fetch(`${API_URL}/diaries/${this.editForm.id}`, {
+                            method: "PATCH",
+                            headers: this.getHeaders(),
+                            body: JSON.stringify({
+                                title: this.editForm.title,
+                                content: this.editForm.content
+                            })
+                        });
+
+                        if (!res.ok) throw new Error("수정에 실패했습니다.");
+
+                        this.showToast("수정되었습니다.", "success");
+                        this.showEditModal = false;
+                        await this.getDiaries();
+
+                    } catch (e) {
+                        this.showToast(e.message, "error");
+                    }
+                },
+
+                async deleteDiary(id) {
+                    if (!confirm("정말 삭제하시겠습니까?")) return;
+
+                    try {
+                        const res = await fetch(`${API_URL}/diaries/${id}`, {
+                            method: "DELETE",
+                            headers: this.getHeaders()
+                        });
+
+                        if (!res.ok) throw new Error("삭제에 실패했습니다.");
+
+                        this.showToast("삭제되었습니다.", "success");
+                        await this.getDiaries();
+
+                    } catch (e) {
+                        this.showToast(e.message, "error");
+                    }
+                },
+
+                formatDate(str) {
+                    return new Date(str).toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric"
+                    });
+                },
+
+                showToast(message, type = "success") {
+                    this.toast = { show: true, message, type };
+                    setTimeout(() => this.toast.show = false, 2500);
+                },
+
+                logout() {
+                    localStorage.removeItem("token");
+                    window.location.href = "/";
+                }
+            };
+        }
+    </script> 
+</body>
+</html>  

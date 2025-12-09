@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 일기 - 대시보드</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+    </style>  
+</head>
+<body class="bg-white text-black min-h-screen">
+    <div x-data="dashboardApp()" x-init="init()">
+
+        <!-- 네비게이션 -->
+        <nav class="bg-black text-white shadow-sm sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+                <a href="/dashboard" class="text-xl font-bold">
+                    오늘의 일기
+                </a>
+                <div class="flex items-center gap-4 text-sm">
+                    <span>안녕하세요, <span x-text="user?.username" class="font-medium"></span>님</span>
+                    <button @click="logout" class="hover:text-gray-300 transition">로그아웃</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 메인 -->
+        <main class="max-w-6xl mx-auto px-4 py-8">
+
+            <!-- 오늘의 질문 -->
+            <section class="bg-black text-white rounded-2xl p-6 mb-8">
+                <h2 class="text-lg font-medium opacity-80 mb-2">오늘의 질문</h2>
+                <p x-text="question?.content || '질문을 불러오는 중...'" class="text-xl font-semibold"></p>
+                <div class="mt-4 flex gap-2">
+                    <span x-show="question?.category" class="text-xs border px-3 py-1 rounded-full opacity-80" x-text="question?.category"></span>
+                    <button @click="getRandomQuestion" class="text-xs border px-3 py-1 rounded-full hover:bg-white hover:text-black transition">다른 질문</button>
+                </div>
+            </section>
+
+            <div class="grid md:grid-cols-2 gap-8">
+
+                <!-- 오늘의 명언 -->
+                <section class="bg-white border rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">오늘의 명언</h2>
+                        <button @click="getRandomQuote" class="text-sm underline-offset-2 hover:underline">다른 명언</button>
+                    </div>
+
+                    <blockquote class="border-l-4 border-black pl-4 py-2">
+                        <p x-text="quote?.content || '명언을 불러오는 중...'" class="italic"></p>
+                        <footer x-show="quote?.author" class="mt-2 text-sm text-gray-500">— <span x-text="quote?.author"></span></footer>
+                    </blockquote>
+
+                    <button @click="bookmarkQuote" class="mt-4 text-sm flex items-center gap-1 text-gray-600 hover:text-black transition">
+                        북마크하기
+                    </button>
+                </section>
+
+                <!-- 빠른 일기 작성 -->
+                <section class="bg-white border rounded-2xl p-6 shadow-sm">
+                    <h2 class="text-lg font-bold mb-4">오늘의 일기</h2>
+                    <form @submit.prevent="createDiary" class="space-y-4">
+                        <input type="text" x-model="diaryForm.title" placeholder="제목" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" required>
+
+                        <textarea x-model="diaryForm.content" placeholder="오늘 하루는 어땠나요?" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent resize-none" required></textarea>
+
+                        <button type="submit" class="w-full py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition font-medium">
+                            일기 저장
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+            <!-- 최근 일기 -->
+            <section class="mt-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold">내 일기</h2>
+                    <a href="/diaries" class="text-sm underline underline-offset-2 hover:text-gray-600">전체보기 →</a>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-4">
+                    <template x-for="diary in diaries.slice(0, 3)" :key="diary.id">
+                        <div class="border bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition cursor-pointer"
+                            @click="viewDiary(diary.id)">
+                            <div class="text-xs text-gray-400 mb-2" x-text="formatDate(diary.date)"></div>
+                            <h3 class="font-medium text-gray-900 mb-2" x-text="diary.title"></h3>
+                            <p class="text-sm text-gray-600 line-clamp-2" x-text="diary.content"></p>
+                        </div> 
+                    </template>  
+
+                    <div x-show="diaries.length === 0" class="col-span-3 text-center py-8 text-gray-400">
+                        아직 작성한 일기가 없어요. 첫 번째 일기를 작성해보세요!
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 토스트 -->
+        <div x-show="toast.show" x-transition :class="toast.type === 'success' ? 'bg-black' : 'bg-red-600'" class="fixed bottom-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg">
+            <span x-text="toast.message"></span>
+        </div>
+    </div>
+
+    <script>
+    const API_URL = '/api/v1';
+
+    function dashboardApp() {
+        return {
+            user: null,
+            question: null,
+            quote: null,
+            diaries: [],
+            diaryForm: {
+                title: '',
+                content: '',
+                date: new Date().toISOString().split('T')[0]
+            },
+            toast: { show: false, message: '', type: 'success' },
+
+            async init() {
+                const token = localStorage.getItem('token');
+                if (!token) return (window.location.href = '/');
+
+                await this.getUser();
+                await this.getRandomQuestion();
+                await this.getRandomQuote();
+                await this.getDiaries();
+            },
+
+            getHeaders() {
+                return {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                };
+            },
+
+            async getUser() {
+                try {
+                    const res = await fetch(`${API_URL}/auth/me`, { headers: this.getHeaders() });
+                    if (!res.ok) throw new Error();
+                    this.user = await res.json();
+                } catch {
+                    localStorage.removeItem('token');
+                    window.location.href = '/';
+                }
+            },
+
+            async getRandomQuestion() {
+                try {
+                    const res = await fetch(`${API_URL}/questions/random`);
+                    if (res.ok) this.question = await res.json();
+                } catch {}
+            },
+
+            async getRandomQuote() {
+                try {
+                    const res = await fetch(`${API_URL}/quotes/random`);
+                    if (res.ok) this.quote = await res.json();
+                } catch {}
+            },
+
+            async getDiaries() {
+                try {
+                    const res = await fetch(`${API_URL}/diaries`, { headers: this.getHeaders() });
+                    if (res.ok) this.diaries = await res.json();
+                } catch {}
+            },
+
+            async createDiary() {
+                try {
+                    const res = await fetch(`${API_URL}/diaries`, {
+                        method: 'POST',
+                        headers: this.getHeaders(),
+                        body: JSON.stringify(this.diaryForm)
+                    });
+
+                    if (!res.ok) throw new Error();
+
+                    this.diaryForm.title = '';
+                    this.diaryForm.content = '';
+                    this.showToast('일기가 저장되었습니다.', 'success');
+
+                    await this.getDiaries();
+                } catch {
+                    this.showToast('일기 저장에 실패했습니다.', 'error');
+                }
+            },
+
+            viewDiary(id) {
+                window.location.href = `/diary/${id}`;
+            },
+
+            async bookmarkQuote() {
+                try {
+                    await fetch(`${API_URL}/quotes/bookmark`, {
+                        method: 'POST',
+                        headers: this.getHeaders(),
+                        body: JSON.stringify({ quote_id: this.quote.id })
+                    });
+                    this.showToast('북마크에 추가되었습니다.', 'success');
+                } catch {
+                    this.showToast('북마크 실패', 'error');
+                }
+            },
+
+            logout() {
+                localStorage.removeItem('token');
+                window.location.href = '/';
+            },
+
+            formatDate(date) {
+                return new Date(date).toLocaleDateString('ko-KR');
+            },
+
+            showToast(message, type = 'success') {
+                this.toast.message = message;
+                this.toast.type = type;
+                this.toast.show = true;
+                setTimeout(() => (this.toast.show = false), 2000);
+            }
+        };
+    }
+    </script>
+</body>
+</html>
+ 
