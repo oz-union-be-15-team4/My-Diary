@@ -4,10 +4,11 @@ from app.model.user import User
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.routers.user import router as user_router
+from app.routers.user import get_current_user
 
 app = FastAPI()
 
-templates = Jinja2Templates(directory="app/front")
+templates = Jinja2Templates(directory="app/frontend")
 
 @app.on_event("startup")
 async def startup():
@@ -29,3 +30,13 @@ def root(request: Request):
         "request": request,
     }
     return templates.TemplateResponse("index.html", context)
+
+@app.get("/bookmarks", response_class=HTMLResponse)
+def bookmarks(
+        request: Request,
+        current_user: User = Depends(get_current_user)
+        ):
+    context = {
+        "request": request,
+    }
+    return templates.TemplateResponse("bookmarks.html", context)

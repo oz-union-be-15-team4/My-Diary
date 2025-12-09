@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import (
     HTTPBearer,
     HTTPAuthorizationCredentials,
@@ -24,10 +24,16 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> User:
-    token = credentials.credentials
+async def get_current_user(request: Request) -> User:
+    # 🔥 쿠키에서 토큰 꺼내기
+    token = request.cookies.get("access_token")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+
     payload = verify_token(token)
 
     if payload is None:
@@ -86,7 +92,7 @@ async def register(user_in: UserCreate):
 
 # ✅ JSON 로그인 방식으로 수정됨
 @router.post("/login")
-async def login(login_in: LoginRequest):
+async def login(login_in: LoginRequest, response: Response):
     try:
         user = await User.get(email=login_in.email)
     except DoesNotExist:
@@ -102,6 +108,15 @@ async def login(login_in: LoginRequest):
         )
 
     access_token = create_token(user.id)
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        max_age=60 * 60 * 24,  # 1일 (선택)
+    )
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 
