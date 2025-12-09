@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 일기</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-neutral-100 min-h-screen flex items-center justify-center p-4">
+
+    <div x-data="authApp()" class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-neutral-200">
+
+            <!-- 로고 -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-neutral-900 tracking-tight">오늘의 일기</h1>
+                <p class="text-neutral-500 mt-2">나만의 소중한 기록</p>
+            </div>
+
+            <!-- 탭 -->
+            <div class="flex mb-6 bg-neutral-200 rounded-lg p-1 select-none">
+                <button @click="tab = 'login'"
+                    :class="tab === 'login' ? 'bg-white shadow-sm text-neutral-900' : 'text-neutral-600'"
+                    class="flex-1 py-2 rounded-lg transition font-medium">
+                    로그인
+                </button>
+                <button @click="tab = 'register'"
+                    :class="tab === 'register' ? 'bg-white shadow-sm text-neutral-900' : 'text-neutral-600'"
+                    class="flex-1 py-2 rounded-lg transition font-medium">
+                    회원가입
+                </button>
+            </div>
+
+            <!-- 에러 -->
+            <template x-if="error">
+                <div class="bg-red-50 text-red-700 border border-red-200 p-3 rounded-lg mb-4 text-sm">
+                    <span x-text="error"></span>
+                </div>
+            </template>
+
+            <!-- 성공 -->
+            <template x-if="success">
+                <div class="bg-green-50 text-green-700 border border-green-200 p-3 rounded-lg mb-4 text-sm">
+                    <span x-text="success"></span>
+                </div>
+            </template>
+
+            <!-- 로그인 -->
+            <form x-show="tab === 'login'" @submit.prevent="login" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">이메일</label>
+                    <input type="email" x-model="loginForm.email"
+                        class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-800"
+                        required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">비밀번호</label>
+                    <input type="password" x-model="loginForm.password"
+                        class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-800"
+                        required> 
+                </div>
+
+                <button type="submit" :disabled="loading"
+                    class="w-full py-3 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 transition disabled:opacity-50">
+                    <span x-show="!loading">로그인</span>
+                    <span x-show="loading">로그인 중...</span>
+                </button>
+            </form>
+
+            <!-- 회원가입 -->
+            <form x-show="tab === 'register'" @submit.prevent="register" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">이메일</label>
+                    <input type="email" x-model="registerForm.email"
+                        class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-800"
+                        required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">닉네임</label>
+                    <input type="text" x-model="registerForm.username"
+                        class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-800"
+                        required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">비밀번호</label>
+                    <input type="password" x-model="registerForm.password"
+                        class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-800"
+                        required>
+                </div>
+
+                <button type="submit" :disabled="loading"
+                    class="w-full py-3 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 transition disabled:opacity-50">
+                    <span x-show="!loading">회원가입</span>
+                    <span x-show="loading">가입 중...</span>
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/v1';
+
+        function authApp() {
+            return {
+                tab: 'login',
+                loading: false,
+                error: '',
+                success: '',
+                loginForm: { email: '', password: '' },
+                registerForm: { email: '', username: '', password: '' },
+
+                async login() {
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const res = await fetch(`${API_URL}/auth/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.loginForm)
+                        });
+
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.detail || '로그인 실패');
+
+                        localStorage.setItem('token', data.access_token);
+                        window.location.href = '/dashboard';
+
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async register() {
+                    this.loading = true;
+                    this.error = '';
+                    this.success = '';
+
+                    try {
+                        const res = await fetch(`${API_URL}/auth/register`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.registerForm)
+                        });
+
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.detail || '회원가입 실패');
+
+                        this.success = '회원가입 성공! 로그인해주세요.';
+                        this.tab = 'login';
+                        this.registerForm = { email: '', username: '', password: '' };
+
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

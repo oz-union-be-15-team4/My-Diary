@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 일기 - 북마크</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+    </style>
+</head>
+
+<body class="bg-neutral-100 min-h-screen"> 
+    <div x-data="bookmarksApp()" x-init="init()">
+
+        <!-- 네비게이션 -->
+        <nav class="bg-white border-b border-neutral-200 sticky top-0 z-50">
+            <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+                <a href="/dashboard" class="text-xl font-bold text-neutral-900">
+                    오늘의 일기
+                </a>
+                <div class="flex items-center gap-4 text-sm">
+                    <a href="/dashboard" class="text-neutral-600 hover:text-neutral-900">대시보드</a>
+                    <a href="/diaries" class="text-neutral-600 hover:text-neutral-900">일기</a>
+                    <button @click="logout" class="text-neutral-600 hover:text-red-600">로그아웃</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 메인 -->
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <h1 class="text-2xl font-bold text-neutral-900 mb-6">북마크한 명언</h1>
+
+            <div class="grid gap-4">
+
+                <!-- 북마크 카드 -->
+                <template x-for="bookmark in bookmarks" :key="bookmark.id">
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6 shadow-sm">
+                        <blockquote class="border-l-4 border-neutral-900 pl-4">
+                            <p class="text-neutral-800 italic text-lg" x-text="bookmark.quote.content"></p>
+                            <footer x-show="bookmark.quote.author" class="mt-2 text-sm text-neutral-500">
+                                — <span x-text="bookmark.quote.author"></span>
+                            </footer>
+                        </blockquote>
+
+                        <button
+                            @click="removeBookmark(bookmark.quote.id)"
+                            class="mt-4 text-sm text-red-600 hover:underline"
+                        >북마크 해제</button>
+                    </div>
+                </template>
+
+                <!-- 빈 상태 -->
+                <div
+                    x-show="bookmarks.length === 0"
+                    class="text-center py-16 text-neutral-400"
+                >
+                    <p class="text-4xl mb-4">📜</p>
+                    <p class="text-neutral-500">북마크한 명언이 없어요.</p>
+                    <a href="/dashboard" class="text-neutral-900 hover:underline mt-2 inline-block">
+                        명언 둘러보기 →
+                    </a>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- 토스트 -->
+        <div
+            x-show="toast.show"
+            x-transition
+            :class="toast.type === 'success'
+                ? 'bg-neutral-900 text-white'
+                : 'bg-red-600 text-white'"
+            class="fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg"
+        >
+            <span x-text="toast.message"></span>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/v1';
+
+        function bookmarksApp() {
+            return {
+                bookmarks: [],
+                toast: { show: false, message: '', type: 'success' },
+
+                async init() {
+                    if (!localStorage.getItem('token')) {
+                        window.location.href = '/';
+                        return;
+                    }
+                    await this.getBookmarks();
+                },
+
+                getHeaders() {
+                    return {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    };
+                },
+
+                async getBookmarks() {
+                    const res = await fetch(`${API_URL}/quotes/bookmarks`, {
+                        headers: this.getHeaders()
+                    });
+                    if (res.ok) {
+                        this.bookmarks = await res.json();
+                    }
+                },
+
+                async removeBookmark(quoteId) {
+                    try {
+                        const res = await fetch(`${API_URL}/quotes/${quoteId}/bookmark`, {
+                            method: 'DELETE',
+                            headers: this.getHeaders()
+                        });
+
+                        if (!res.ok) throw new Error('북마크 해제 실패');
+
+                        this.showToast('북마크가 해제되었습니다.', 'success');
+                        await this.getBookmarks();
+                    } catch (e) {
+                        this.showToast(e.message, 'error');
+                    }
+                },
+
+                showToast(message, type = 'success') {
+                    this.toast = { show: true, message, type };
+                    setTimeout(() => {
+                        this.toast.show = false;
+                    }, 3000);
+                },
+
+                logout() {
+                    localStorage.removeItem('token');
+                    window.location.href = '/';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
