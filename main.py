@@ -1,6 +1,7 @@
-def main():
-    print("Hello from my-diary!")
+from fastapi import FastAPI
 
+app = FastAPI()
 
-if __name__ == "__main__":
-    main()
+@app.get("/")
+def root():
+    return {"message": "FastAPI 정상 작동 중 ✅"}
