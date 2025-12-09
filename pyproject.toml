@@ -5,5 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aerich>=0.9.2",
+    "asyncpg>=0.31.0",
     "fastapi>=0.124.0",
+    "python-dotenv>=1.2.1",
+    "tortoise>=0.1.1",
+    "tortoise-orm>=0.25.1",
+    "uvicorn>=0.38.0",
 ]
