@@ -130,18 +130,22 @@
                     this.loading = true;
                     this.error = '';
 
+                    const payload = {
+                        email: this.loginForm.email,
+                        password: this.loginForm.password
+                    };
+
                     try {
                         const res = await fetch(`${API_URL}/auth/login`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(this.loginForm)
+                            body: JSON.stringify(payload)
                         });
 
                         const data = await res.json();
                         if (!res.ok) throw new Error(data.detail || '로그인 실패');
 
-                        localStorage.setItem('token', data.access_token);
-                        window.location.href = '/dashboard';
+                        window.location.href = '/bookmarks';
 
                     } catch (e) {
                         this.error = e.message;
