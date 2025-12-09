@@ -15,7 +15,7 @@ async def init_db():
     await Tortoise.init(
         db_url=DB_URL,
         modules={
-            "models": ["app.model.user"]  # ✅ 폴더 통째로 지정
+            "models": ["app.model.user"]
         },
     )
     await Tortoise.generate_schemas()
