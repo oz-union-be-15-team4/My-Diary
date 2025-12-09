@@ -88,7 +88,7 @@
                 <div class="grid md:grid-cols-3 gap-4">
                     <template x-for="diary in diaries.slice(0, 3)" :key="diary.id">
                         <div class="border bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition cursor-pointer"
-                             @click="viewDiary(diary.id)">
+                            @click="viewDiary(diary.id)">
                             <div class="text-xs text-gray-400 mb-2" x-text="formatDate(diary.date)"></div>
                             <h3 class="font-medium text-gray-900 mb-2" x-text="diary.title"></h3>
                             <p class="text-sm text-gray-600 line-clamp-2" x-text="diary.content"></p>
