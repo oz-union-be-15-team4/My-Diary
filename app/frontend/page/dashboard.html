@@ -26,6 +26,7 @@
                 </a>
                 <div class="flex items-center gap-4 text-sm">
                     <span>안녕하세요, <span x-text="user?.username" class="font-medium"></span>님</span>
+                    <button @click="bookmarks" class="hover:text-gray-300 transition">북마크</button>
                     <button @click="logout" class="hover:text-gray-300 transition">로그아웃</button>
                 </div>
             </div>
@@ -37,7 +38,7 @@
             <!-- 오늘의 질문 -->
             <section class="bg-black text-white rounded-2xl p-6 mb-8">
                 <h2 class="text-lg font-medium opacity-80 mb-2">오늘의 질문</h2>
-                <p x-text="question?.content || '질문을 불러오는 중...'" class="text-xl font-semibold"></p>
+                <p x-text="question?.question_text || '질문을 불러오는 중...'" class="text-xl font-semibold"></p>
                 <div class="mt-4 flex gap-2">
                     <span x-show="question?.category" class="text-xs border px-3 py-1 rounded-full opacity-80" x-text="question?.category"></span>
                     <button @click="getRandomQuestion" class="text-xs border px-3 py-1 rounded-full hover:bg-white hover:text-black transition">다른 질문</button>
@@ -69,7 +70,7 @@
                     <form @submit.prevent="createDiary" class="space-y-4">
                         <input type="text" x-model="diaryForm.title" placeholder="제목" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" required>
 
-                        <textarea x-model="diaryForm.content" placeholder="오늘 하루는 어땠나요?" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent resize-none" required></textarea>
+                        <textarea x-model="diaryForm.content" x-bind:placeholder="question?.question_text" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent resize-none" required></textarea>
 
                         <button type="submit" class="w-full py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition font-medium">
                             일기 저장
@@ -144,7 +145,6 @@
                     if (!res.ok) throw new Error();
                     this.user = await res.json();
                 } catch {
-                    localStorage.removeItem('token');
                     window.location.href = '/';
                 }
             },
@@ -207,9 +207,18 @@
                 }
             },
 
-            logout() {
-                localStorage.removeItem('token');
-                window.location.href = '/';
+            async bookmarks() {
+                window.location.href = "/bookmarks";
+            },
+
+            async logout() {
+                await fetch(`${API_URL}/auth/logout`, {
+                    method: "POST",
+                    credentials: "include", // 👈 쿠키 전송 필수!
+                  });
+
+                  // 로그아웃 후 이동
+                  window.location.href = "/";
             },
 
             formatDate(date) {

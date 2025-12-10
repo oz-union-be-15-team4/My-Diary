@@ -43,14 +43,14 @@
                 <template x-for="bookmark in bookmarks" :key="bookmark.id">
                     <div class="bg-white border border-neutral-200 rounded-xl p-6 shadow-sm">
                         <blockquote class="border-l-4 border-neutral-900 pl-4">
-                            <p class="text-neutral-800 italic text-lg" x-text="bookmark.quote.content"></p>
-                            <footer x-show="bookmark.quote.author" class="mt-2 text-sm text-neutral-500">
-                                — <span x-text="bookmark.quote.author"></span>
+                            <p class="text-neutral-800 italic text-lg" x-text="bookmark.content"></p>
+                            <footer x-show="bookmark.author" class="mt-2 text-sm text-neutral-500">
+                                — <span x-text="bookmark.author"></span>
                             </footer>
                         </blockquote>
 
                         <button
-                            @click="removeBookmark(bookmark.quote.id)"
+                            @click="removeBookmark(bookmark.id)"
                             class="mt-4 text-sm text-red-600 hover:underline"
                         >북마크 해제</button>
                     </div>
