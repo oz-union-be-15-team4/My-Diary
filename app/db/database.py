@@ -15,7 +15,12 @@ async def init_db():
     await Tortoise.init(
         db_url=DB_URL,
         modules={
-            "models": ["app.model.user"]
+            "models": ["app.models.user",
+                       "app.models.bookmark",
+                       "app.models.diary",
+                       "app.models.question",
+                       "app.models.quote",
+                       ]
         },
     )
     await Tortoise.generate_schemas()

@@ -1,20 +1,26 @@
 from fastapi import FastAPI, Depends, Request, APIRouter
 from fastapi.responses import RedirectResponse
 from app.db.database import init_db, close_db
-from app.model.user import User
+from app.models.user import User
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.routers.user import router as user_router
 from app.routers.user import get_current_user
+from app.scripts.scrape_quotes import run_quote_scraper
 from app.services.auth import verify_token
+import asyncio
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="app/frontend")
 
 @app.on_event("startup")
-async def startup():
+async def on_startup():
+
     await init_db()
+
+    asyncio.create_task(run_quote_scraper())
+    print("명언 스크래핑 완료!")
 
 @app.on_event("shutdown")
 async def shutdown():
