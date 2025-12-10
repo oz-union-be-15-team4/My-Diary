@@ -95,10 +95,18 @@ async def login(login_in: LoginRequest, response: Response):
         value=access_token,
         httponly=True,
         secure=False,
-        max_age=60 * 60 * 24,  # 1일 (선택)
+        max_age=60 * 30,  # 30분
     )
 
     return {"access_token": access_token}
+
+@router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+    )
+    return {"detail": "Logged out"}
 
 
 @router.get("/me", response_model=UserRead)

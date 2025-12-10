@@ -5,7 +5,10 @@ from app.models.user import User
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.routers.user import router as user_router
+from app.routers.question import router as question_router
+from app.routers.quote import router as quote_router
 from app.routers.user import get_current_user
+from app.scripts.insert_question import seed_questions
 from app.scripts.scrape_quotes import run_quote_scraper
 from app.services.auth import verify_token
 import asyncio
@@ -19,6 +22,7 @@ async def on_startup():
 
     await init_db()
 
+    asyncio.create_task(seed_questions())
     asyncio.create_task(run_quote_scraper())
     print("명언 스크래핑 완료!")
 
@@ -28,6 +32,8 @@ async def shutdown():
 
 api_v1 = APIRouter(prefix="/api/v1")
 api_v1.include_router(user_router)
+api_v1.include_router(question_router)
+api_v1.include_router(quote_router)
 
 app.include_router(api_v1)
 

@@ -2,7 +2,6 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 class BookmarkBase(BaseModel):
-    user_id: int
     quote_id: int
 
 
