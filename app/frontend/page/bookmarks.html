@@ -135,10 +135,15 @@
                     }, 3000);
                 },
 
-                logout() {
-                    localStorage.removeItem('token');
-                    window.location.href = '/';
-                }
+                async logout() {
+                    await fetch(`${API_URL}/auth/logout`, {
+                        method: "POST",
+                        credentials: "include", // 👈 쿠키 전송 필수!
+                      });
+
+                      // 로그아웃 후 이동
+                      window.location.href = "/";
+                },
             }
         }
     </script>
