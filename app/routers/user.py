@@ -1,8 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
-from fastapi.security import (
-    HTTPBearer,
-    HTTPAuthorizationCredentials,
-)
+from fastapi.responses import RedirectResponse
 from tortoise.exceptions import DoesNotExist
 from passlib.context import CryptContext
 
@@ -13,8 +10,6 @@ from app.services.auth import create_token, verify_token
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-security = HTTPBearer()
-
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -24,38 +19,26 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-async def get_current_user(request: Request) -> User:
+async def get_current_user(request: Request):
     # 🔥 쿠키에서 토큰 꺼내기
     token = request.cookies.get("access_token")
 
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-        )
+        return RedirectResponse("/", status_code=302)
 
     payload = verify_token(token)
 
     if payload is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-        )
+        return RedirectResponse("/", status_code=302)
 
     user_id = payload.get("user_id")
     if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
-        )
+        return RedirectResponse("/", status_code=302)
 
     try:
         user = await User.get(id=user_id)
     except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+        return RedirectResponse("/", status_code=302)
 
     return user
 
@@ -89,8 +72,6 @@ async def register(user_in: UserCreate):
         updated_at=user.updated_at,
     )
 
-
-# ✅ JSON 로그인 방식으로 수정됨
 @router.post("/login")
 async def login(login_in: LoginRequest, response: Response):
     try:
@@ -117,7 +98,7 @@ async def login(login_in: LoginRequest, response: Response):
         max_age=60 * 60 * 24,  # 1일 (선택)
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token}
 
 
 @router.get("/me", response_model=UserRead)
