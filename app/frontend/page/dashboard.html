@@ -125,9 +125,6 @@
             toast: { show: false, message: '', type: 'success' },
 
             async init() {
-                const token = localStorage.getItem('token');
-                if (!token) return (window.location.href = '/');
-
                 await this.getUser();
                 await this.getRandomQuestion();
                 await this.getRandomQuote();

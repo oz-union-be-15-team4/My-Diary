@@ -136,10 +136,6 @@
                 toast: { show: false, message: "", type: "success" },
 
                 async init() {
-                    if (!localStorage.getItem("token")) {
-                        window.location.href = "/";
-                        return;
-                    }
                     await this.getDiaries();
                 },
 

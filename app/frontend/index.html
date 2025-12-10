@@ -145,7 +145,7 @@
                         const data = await res.json();
                         if (!res.ok) throw new Error(data.detail || '로그인 실패');
 
-                        window.location.href = '/bookmarks';
+                        window.location.href = '/dashboard';
 
                     } catch (e) {
                         this.error = e.message;
