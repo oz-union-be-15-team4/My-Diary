@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 일기 - 상세보기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+<div x-data="detailPage()" x-init="init()">
+
+    <!-- 네비게이션 -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/dashboard" class="text-xl font-bold text-gray-900">오늘의 일기</a>
+
+            <div class="flex items-center gap-4 text-sm text-gray-500">
+                <a href="/dashboard" class="hover:text-black">대시보드</a>
+                <a href="/diaries" class="hover:text-black">내 일기</a>
+                <button @click="logout" class="hover:text-red-500">로그아웃</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 -->
+    <main class="max-w-4xl mx-auto px-4 py-10">
+
+        <div class="bg-white rounded-xl shadow-sm p-8">
+
+            <!-- 날짜 -->
+            <p class="text-xs text-gray-400 mb-2" x-text="formatDate(diary.created_at)"></p>
+
+            <!-- 제목 -->
+            <template x-if="!editMode">
+                <h1 class="text-xl font-bold text-gray-900 mb-3" x-text="diary.title"></h1>
+            </template>
+
+            <template x-if="editMode">
+                <input 
+                    x-model="editForm.title"
+                    class="w-full mb-3 px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-black"
+                >
+            </template>
+
+            <!-- 내용 -->
+            <template x-if="!editMode">
+                <p class="text-sm text-gray-700 leading-5 whitespace-pre-line" x-text="diary.content"></p>
+            </template>
+
+            <template x-if="editMode">
+                <textarea
+                    x-model="editForm.content"
+                    rows="10"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-black"
+                ></textarea>
+            </template>
+
+            <!-- 버튼 영역 -->
+            <div class="mt-6 flex gap-2">
+
+                <!-- 수정 전 -->
+                <template x-if="!editMode">
+                    <div class="flex gap-2">
+                        <button 
+                            @click="enableEdit"
+                            class="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800"
+                        >
+                            수정
+                        </button>
+
+                        <button 
+                            @click="deleteDiary"
+                            class="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                            삭제
+                        </button>
+                    </div>
+                </template>
+
+                <!-- 수정 중 -->
+                <template x-if="editMode">
+                    <div class="flex gap-2">
+                        <button 
+                            @click="saveEdit"
+                            class="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800"
+                        >
+                            저장
+                        </button>
+
+                        <button 
+                            @click="cancelEdit"
+                            class="px-2 py-1 text-xs bg-gray-300 text-black rounded hover:bg-gray-400"
+                        >
+                            취소
+                        </button>
+                    </div>
+                </template>
+
+            </div>
+
+        </div>
+
+        <!-- 뒤로가기 -->
+        <div class="mt-6">
+            <a href="/diaries" class="text-xs text-gray-500 hover:text-black underline">
+                ← 돌아가기
+            </a>
+        </div>
+    </main>
+
+</div>
+
+<script>
+const API_URL = '/api/v1';
+
+function detailPage() {
+    return {
+        diary: {},
+        editMode: false,
+        editForm: {
+            title: "",
+            content: ""
+        },
+
+        async init() {
+            const diaryId = this.getDiaryIdFromURL();
+            await this.fetchDiaryDetail(diaryId);
+        },
+
+        getDiaryIdFromURL() {
+            const parts = window.location.pathname.split('/');
+            return parts[parts.length - 1];
+        },
+
+        async fetchDiaryDetail(id) {
+            const res = await fetch(`${API_URL}/diaries/${id}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (res.ok) {
+                this.diary = await res.json();
+            } else {
+                alert("일기를 불러올 수 없습니다.");
+                window.location.href = '/diaries';
+            }
+        },
+
+        enableEdit() {
+            this.editMode = true;
+            this.editForm.title = this.diary.title;
+            this.editForm.content = this.diary.content;
+        },
+
+        cancelEdit() {
+            this.editMode = false;
+        },
+
+        async saveEdit() {
+            const id = this.diary.id;
+
+            const res = await fetch(`${API_URL}/diaries/${id}`, {
+                method: "PATCH",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(this.editForm)
+            });
+
+            if (res.ok) {
+                this.diary = await res.json();
+                this.editMode = false;
+            } else {
+                alert("수정에 실패했습니다.");
+            }
+        },
+
+        async deleteDiary() {
+            if (!confirm("정말 삭제할까요?")) return;
+
+            const id = this.diary.id;
+
+            const res = await fetch(`${API_URL}/diaries/${id}`, {
+                method: "DELETE",
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (res.ok) {
+                alert("일기가 삭제되었습니다.");
+                window.location.href = "/diaries";
+            } else {
+                alert("삭제에 실패했습니다.");
+            }
+        },
+
+        formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        },
+
+        async logout() {
+            await fetch(`${API_URL}/auth/logout`, {
+                method: "POST",
+                credentials: "include", // 👈 쿠키 전송 필수!
+              });
+
+              // 로그아웃 후 이동
+              window.location.href = "/";
+        },
+    }
+}
+</script>
+
+</body>
+</html>

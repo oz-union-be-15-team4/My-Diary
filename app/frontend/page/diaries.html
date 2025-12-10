@@ -41,7 +41,8 @@
             <!-- 일기 리스트 -->
             <div class="space-y-4">
                 <template x-for="diary in diaries" :key="diary.id">
-                    <div class="bg-white border rounded-xl p-6 shadow-sm hover:shadow transition">
+                    <div class="bg-white border rounded-xl p-6 shadow-sm hover:shadow transition cursor-pointer"
+                        @click="viewDiary(diary.id)">
                         <div class="flex justify-between items-start">
 
                             <div class="flex-1">
@@ -51,8 +52,8 @@
                             </div>
 
                             <div class="flex gap-3 ml-4">
-                                <button @click="editDiary(diary)" class="text-sm text-gray-600 hover:underline">수정</button>
-                                <button @click="deleteDiary(diary.id)" class="text-sm text-gray-600 hover:underline">삭제</button>
+                                <button @click.stop="editDiary(diary)" class="text-sm text-gray-600 hover:underline">수정</button>
+                                <button @click.stop="deleteDiary(diary.id)" class="text-sm text-gray-600 hover:underline">삭제</button>
                             </div>
                         </div>
                     </div>
@@ -146,6 +147,16 @@
                     };
                 },
 
+                async logout() {
+                    await fetch(`${API_URL}/auth/logout`, {
+                        method: "POST",
+                        credentials: "include", // 👈 쿠키 전송 필수!
+                      });
+
+                      // 로그아웃 후 이동
+                      window.location.href = "/";
+                },
+
                 async getDiaries() {
                     const res = await fetch(`${API_URL}/diaries`, { headers: this.getHeaders() });
                     if (res.ok) this.diaries = await res.json();
@@ -197,6 +208,10 @@
                     }
                 },
 
+                viewDiary(id) {
+                    window.location.href = `/diaries/${id}`;
+                },
+
                 formatDate(str) {
                     return new Date(str).toLocaleDateString("ko-KR", {
                         year: "numeric",
@@ -208,11 +223,6 @@
                 showToast(message, type = "success") {
                     this.toast = { show: true, message, type };
                     setTimeout(() => this.toast.show = false, 2500);
-                },
-
-                logout() {
-                    localStorage.removeItem("token");
-                    window.location.href = "/";
                 }
             };
         }
