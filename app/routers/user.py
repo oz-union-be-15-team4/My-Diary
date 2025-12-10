@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from tortoise.exceptions import DoesNotExist
 from passlib.context import CryptContext
 
-from app.model.user import User
+from app.models.user import User
 from app.schemas.user import UserCreate, UserRead, LoginRequest
 from app.services.auth import create_token, verify_token
 
