@@ -212,7 +212,7 @@ async def run_quote_scraper():
     base_url = "https://saramro.com/quotes"
 
     await Tortoise.get_connection("default").execute_script(
-        'TRUNCATE TABLE "quotes" RESTART IDENTITY;'
+        'TRUNCATE TABLE "quotes" CASCADE;'
     )
 
     max_pages = 10
