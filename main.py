@@ -9,8 +9,8 @@ from app.routers.question import router as question_router
 from app.routers.quote import router as quote_router
 from app.routers.diary import router as diary_router
 from app.routers.user import get_current_user
-from app.scripts.insert_question import seed_questions
-from app.scripts.scrape_quotes import run_quote_scraper
+from app.script.insert_question import seed_questions
+from app.script.scrape_quotes import run_quote_scraper
 from app.services.auth import verify_token
 import asyncio
 
