@@ -94,14 +94,39 @@
                     <label class="block text-sm font-medium text-neutral-700 mb-1">닉네임</label>
                     <input type="text" x-model="registerForm.username"
                         class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-800"
+                           minlength="3"
+                           maxlength="20"
                         required>
+                    <p class="mt-1 text-xs text-neutral-400">
+                        닉네임은 3자 이상 20자 이하로 입력해주세요.
+                    </p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-neutral-700 mb-1">비밀번호</label>
                     <input type="password" x-model="registerForm.password"
                         class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-800"
+                        minlength="8"
+                        maxlength="20"
                         required>
+
+                    <p class="mt-1 text-xs text-neutral-400">
+                        비밀번호는 8자 이상 20자 이하로 입력해주세요.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">비밀번호 확인</label>
+                    <input type="password"
+                           x-model="registerForm.passwordConfirm"
+                           minlength="8"
+                           maxlength="20"
+                           class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-800"
+                           required>
+
+                    <p class="mt-1 text-xs text-neutral-400">
+                        비밀번호를 다시 한 번 입력해주세요.
+                    </p>
                 </div>
 
                 <button type="submit" :disabled="loading"
@@ -124,7 +149,7 @@
                 error: '',
                 success: '',
                 loginForm: { email: '', password: '' },
-                registerForm: { email: '', username: '', password: '' },
+                registerForm: { email: '', username: '', password: '', passwordConfirm: ''},
 
                 async login() {
                     this.loading = true;
@@ -159,11 +184,39 @@
                     this.error = '';
                     this.success = '';
 
+                    const payload = {
+                        email: this.registerForm.email,
+                        username: this.registerForm.username,
+                        password: this.registerForm.password
+                    };
+
+                    const nickname = this.registerForm.username.trim();
+                        const len = nickname.length;
+
+                        if (len < 3 || len > 20) {
+                            this.loading = false;
+                            this.error = '닉네임은 3자 이상 20자 이하로 입력해주세요.';
+                            return;
+                        }
+
+                    const password = (this.registerForm.password || '').trim();
+                        if (password.length < 8 || password.length > 20) {
+                            this.error = '비밀번호는 8자 이상 20자 이하로 입력해주세요.';
+                            this.loading = false;
+                            return;
+                        }
+
+                    if (this.registerForm.password !== this.registerForm.passwordConfirm) {
+                        this.error = '비밀번호가 서로 일치하지 않습니다.';
+                        this.loading = false;
+                        return;
+                    }
+
                     try {
                         const res = await fetch(`${API_URL}/auth/register`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(this.registerForm)
+                            body: JSON.stringify(payload)
                         });
 
                         const data = await res.json();
@@ -171,7 +224,7 @@
 
                         this.success = '회원가입 성공! 로그인해주세요.';
                         this.tab = 'login';
-                        this.registerForm = { email: '', username: '', password: '' };
+                        this.registerForm = { email: '', username: '', password: '', passwordConfirm: '' };
 
                     } catch (e) {
                         this.error = e.message;
