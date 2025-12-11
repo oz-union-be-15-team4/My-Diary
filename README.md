@@ -63,26 +63,35 @@
  ┗ 📜main.py
 ```
 
-## 실행 방법
+## 접속 방법
 
+http://3.34.197.233/
 
 ## 스크린샷
 
 ### 로그인 페이지
 
+<img width="1600" height="851" alt="login" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/rogin.png" />
+
 ### 대시보드
 
-### 일기
+<img width="1600" height="851" alt="dashboard" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/dashboard.png" />
 
-### 일기 상세 페이지
+### 일기 목록
 
-### 북마크
+<img width="1600" height="851" alt="diary" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/diary.png" />
 
+### 북마크 목록
+
+<img width="1600" height="851" alt="bookmark" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/bookmarks.png" />
 
 ## 라이선스
 
+MIT License
 
 ## 개발자 
 
 - **GitHub**: [@algorid](https://github.com/algorid), [@Ryu-GY](https://github.com/Ryu-GY), [@yoon-122](https://github.com/yoon-122)
+
   
+
