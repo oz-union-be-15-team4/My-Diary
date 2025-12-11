@@ -90,7 +90,7 @@
                     <template x-for="diary in diaries.slice(0, 3)" :key="diary.id">
                         <div class="border bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition cursor-pointer"
                             @click="viewDiary(diary.id)">
-                            <div class="text-xs text-gray-400 mb-2" x-text="formatDate(diary.date)"></div>
+                            <div class="text-xs text-gray-400 mb-2" x-text="formatDate(diary.created_at)"></div>
                             <h3 class="font-medium text-gray-900 mb-2" x-text="diary.title"></h3>
                             <p class="text-sm text-gray-600 line-clamp-2" x-text="diary.content"></p>
                         </div> 
@@ -121,7 +121,7 @@
             diaryForm: {
                 title: '',
                 content: '',
-                date: new Date().toISOString().split('T')[0]
+                created_at: new Date().toISOString().split('T')[0]
             },
             toast: { show: false, message: '', type: 'success' },
 
@@ -191,7 +191,7 @@
             },
 
             viewDiary(id) {
-                window.location.href = `/diary/${id}`;
+                window.location.href = `/diaries/${id}`;
             },
 
             async bookmarkQuote() {

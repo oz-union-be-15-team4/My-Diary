@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from app.routers.user import router as user_router
 from app.routers.question import router as question_router
 from app.routers.quote import router as quote_router
+from app.routers.diary import router as diary_router
 from app.routers.user import get_current_user
 from app.scripts.insert_question import seed_questions
 from app.scripts.scrape_quotes import run_quote_scraper
@@ -34,6 +35,7 @@ api_v1 = APIRouter(prefix="/api/v1")
 api_v1.include_router(user_router)
 api_v1.include_router(question_router)
 api_v1.include_router(quote_router)
+api_v1.include_router(diary_router)
 
 app.include_router(api_v1)
 
@@ -91,3 +93,14 @@ def bookmarks(
         "request": request,
     }
     return templates.TemplateResponse("page/diaries.html", context)
+
+@app.get("/diaries/{diary_id}", response_class=HTMLResponse)
+def bookmarks_detail(
+        request: Request,
+        diary_id: int,
+        current_user: User = Depends(get_current_user)
+        ):
+    context = {
+        "request": request,
+    }
+    return templates.TemplateResponse("page/diaries_detail.html", context)
