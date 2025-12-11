@@ -65,13 +65,13 @@
 
 ## 접속 방법
 
-http://3.34.197.233/
+http://ec2-3-34-197-233.ap-northeast-2.compute.amazonaws.com/
 
 ## 스크린샷
 
 ### 로그인 페이지
 
-<img width="1600" height="851" alt="login" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/rogin.png" />
+<img width="1600" height="851" alt="login" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/login.png" />
 
 ### 대시보드
 
