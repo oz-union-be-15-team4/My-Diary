@@ -23,7 +23,7 @@
 - **ORM**: Tortoise ORM
 - **Database**: PostgreSQL (Neon)
 - **Authentication**: JWT (python-jose)
-  
+
 ### Frontend
 - **HTML5** + **TailwindCSS** + **Alpine.js**
 
@@ -63,4 +63,26 @@
  ┗ 📜main.py
 ```
 
-## 실행 방
+## 실행 방법
+
+
+## 스크린샷
+
+### 로그인 페이지
+
+### 대시보드
+
+### 일기
+
+### 일기 상세 페이지
+
+### 북마크
+
+
+## 라이선스
+
+
+## 개발자 
+
+- **GitHub**: [@algorid](https://github.com/algorid), [@Ryu-GY](https://github.com/Ryu-GY), [@yoon-122](https://github.com/yoon-122)
+  
