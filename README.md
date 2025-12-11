@@ -65,25 +65,25 @@
 
 ## 접속 방법
 
-http://3.34.197.233/
+http://ec2-3-34-197-233.ap-northeast-2.compute.amazonaws.com/
 
 ## 스크린샷
 
 ### 로그인 페이지
 
-<img width="1600" height="851" alt="login" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/rogin.png" />
+<img width="1600" height="851" alt="login" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/main/login.png" />
 
 ### 대시보드
 
-<img width="1600" height="851" alt="dashboard" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/dashboard.png" />
+<img width="1600" height="851" alt="dashboard" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/main/dashboard.png" />
 
 ### 일기 목록
 
-<img width="1600" height="851" alt="diary" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/diary.png" />
+<img width="1600" height="851" alt="diary" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/main/diary.png" />
 
 ### 북마크 목록
 
-<img width="1600" height="851" alt="bookmark" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/meow/bookmarks.png" />
+<img width="1600" height="851" alt="bookmark" src="https://github.com/oz-union-be-15-team4/My-Diary/blob/main/bookmarks.png" />
 
 ## 라이선스
 
@@ -94,4 +94,5 @@ MIT License
 - **GitHub**: [@algorid](https://github.com/algorid), [@Ryu-GY](https://github.com/Ryu-GY), [@yoon-122](https://github.com/yoon-122)
 
   
+
 
